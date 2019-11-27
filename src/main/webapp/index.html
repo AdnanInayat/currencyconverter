@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Currency Converter</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3 jumbotron">
+                <div class="form-group">
+                    <h1>Currency Converter</h1>
+                </div>
+                <div class="form-group">
+                    <label>Euro Amount</label>
+                    <input class="form-control" type="text" name="euro_amount" id="euro_txt">
+                </div>
+                <div class="form-group">
+                    <label>Customer</label>
+                    <input class="form-control" type="text" name="customer" id="customer_txt">
+                </div>
+                <div class="form-group">
+                    <label>Currency</label>
+                    <select class="form-control" name="currency" id="currency_slct">
+                        <option value=0>Dollar</option>
+                        <option value=1>Pound</option>
+                        <option value=2>PKR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <p style="display: none;" id='res_p'>Converted Currency: <em id='result'></em></p>
+                </div>
+                <div class="form-group">
+                    <button id="btn_submit" class="btn btn-primary">Convert</button>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-6 offset-md-3 jumbotron">
+                <div class="form-group">
+                    <h1>Search</h1>
+                </div>
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input class="form-control" type="text" name="customer_search" id="customer_search_txt">
+                </div>
+                <div class="form-group">
+                    <button id="search_btn_submit" class="btn btn-primary">Show</button>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Amount</th>
+                                    <th>Currency</th>
+                                    <th>Converted Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="conversions">
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <script>
+        $("#btn_submit").on('click', function(){
+            var euro_amount = document.getElementById('euro_txt').value;
+            var selected_currency = document.getElementById('currency_slct').value;
+            var customer = document.getElementById('customer_txt').value;
+            // var conversion_rate = [1.11, 0.86];
+            // if (typeof euro_amount !== 'undefined') {
+            //     var res = parseFloat(euro_amount) * conversion_rate[selected_currency];
+            //     document.getElementById('result').innerHTML = res;
+            //     document.getElementById('res_p').style.display = "block";
+            // }
+            const xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "Converter", true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send("amount=" + euro_amount + "&selected_currency=" + selected_currency + "&customer=" + customer);
+            xhttp.onreadystatechange = (e) => {
+                document.getElementById('result').innerHTML = xhttp.responseText;
+                document.getElementById('res_p').style.display = "block";
+            }
+        });
+        $('#search_btn_submit').on('click',function(){
+            var search_customer = document.getElementById('customer_search_txt').value;
+            const xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "Search?customer_search=" + search_customer, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send("customer_search=" + search_customer);
+            xhttp.onreadystatechange = (e) => {
+               if(xhttp.responseText == ''){
+                    $('#conversions').html('');
+                    return;
+                }
+                var response = JSON.parse(xhttp.responseText);
+                $('#conversions').html('');
+                for(var i = 0; i < response.length; i++){
+                    var curr = '';
+                    switch (response[i].selected_currency){
+                        case (0):
+                            curr = 'DOLLAR';
+                            break;
+                        case (1):
+                            curr = 'POUND';
+                            break;
+                        case (2):
+                            curr = 'PKR';
+                            break;
+                    }
+                    console.log(curr);
+                    var html = `
+                    <tr>
+                        <td>`+ response[i].amount +`</td>
+                        <td>`+ curr +`</td>
+                        <td>`+ response[i].converted_amount +`</td>
+                    </tr>`;
+                    $('#conversions').append(html);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
